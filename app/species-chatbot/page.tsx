@@ -8,6 +8,8 @@ export default function SpeciesChatbot() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleInput = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -16,11 +18,63 @@ export default function SpeciesChatbot() {
     }
   };
 
-const handleSubmit = async () => {
-  // TODO: Implement this function
-}
+  const handleSubmit = async () => {
+    const trimmed = message.trim();
+    if (!trimmed) return; // ignore empty sends
+    if (isLoading) return;
 
-return (
+    // add the user message
+    setChatLog((prev) => [...prev, { role: "user", content: trimmed }]);
+    setMessage("");
+    setIsLoading(true);
+
+    // reset textarea height after clearing
+    const textarea = textareaRef.current;
+    if (textarea) textarea.style.height = "auto";
+
+    // fetch API key
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      if (!res.ok) {
+        // try to read error body if provided
+        let errText = "Something went wrong.";
+        try {
+          const errJson = (await res.json()) as { error?: string };
+          if (typeof errJson.error === "string") {
+            errText = errJson.error;
+          }
+        } catch {}
+        setChatLog((prev) => [...prev, { role: "bot", content: `Sorry, ${errText}` }]);
+        return;
+      }
+
+      const data = (await res.json()) as { response?: string };
+
+      const botReply =
+        typeof data?.response === "string" && data.response.trim()
+          ? data.response.trim()
+          : "Sorry, I couldn’t respond.";
+
+      setChatLog((prev) => [...prev, { role: "bot", content: botReply }]);
+    } catch {
+      setChatLog((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          content: "Sorry, I’m having trouble communicating with the animals right now. Please try again in a moment.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
     <>
       <TypographyH2>Species Chatbot</TypographyH2>
       <div className="mt-4 flex gap-4">
@@ -37,9 +91,9 @@ return (
           </TypographyP>
         </div>
       </div>
-      {/* Chat UI, ChatBot to be implemented */}
+
       <div className="mx-auto mt-6">
-        {/* Chat history */}
+        {/* chat history */}
         <div className="h-[400px] space-y-3 overflow-y-auto rounded-lg border border-border bg-muted p-4">
           {chatLog.length === 0 ? (
             <p className="text-sm text-muted-foreground">Start chatting about a species!</p>
@@ -58,8 +112,15 @@ return (
               </div>
             ))
           )}
+          {isLoading ? (
+            <div className="flex justify-start">
+              <div className="max-w-[75%] rounded-2xl rounded-bl-none border border-border bg-foreground p-3 text-sm text-primary-foreground">
+                Thinking…
+              </div>
+            </div>
+          ) : null}
         </div>
-        {/* Textarea and submission */}
+
         <div className="mt-4 flex flex-col items-end">
           <textarea
             ref={textareaRef}
@@ -68,14 +129,24 @@ return (
             onInput={handleInput}
             rows={1}
             placeholder="Ask about a species..."
-            className="w-full resize-none overflow-hidden rounded border border-border bg-background p-2 text-sm text-foreground focus:outline-none"
+            disabled={isLoading}
+            className="w-full resize-none overflow-hidden rounded border border-border bg-background p-2 text-sm text-foreground focus:outline-none disabled:opacity-60"
+            onKeyDown={(e) => {
+              // enter to send chat request; shift+enter for newline
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void handleSubmit();
+              }
+            }}
           />
+          {/* cannot send another message while prev is still loading */}
           <button
             type="button"
             onClick={() => void handleSubmit()}
-            className="mt-2 rounded bg-primary px-4 py-2 text-background transition hover:opacity-90"
+            disabled={isLoading}
+            className="mt-2 rounded bg-primary px-4 py-2 text-background transition hover:opacity-90 disabled:opacity-60"
           >
-            Enter
+            {isLoading ? "Sending..." : "Enter"}
           </button>
         </div>
       </div>
