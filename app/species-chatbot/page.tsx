@@ -3,6 +3,18 @@
 import { TypographyH2, TypographyP } from "@/components/ui/typography";
 import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { Send } from 'lucide-react';
+
+/* animation for loading message */
+function TypingDots() {
+  return (
+    <div className="flex gap-0.5">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.2s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.1s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
+    </div>
+  );
+}
 
 export default function SpeciesChatbot() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,15 +92,13 @@ export default function SpeciesChatbot() {
       <div className="mt-4 flex gap-4">
         <div className="mt-4 rounded-lg bg-foreground p-4 text-background">
           <TypographyP>
-            The Species Chatbot is a feature to be implemented that is specialized to answer questions about animals.
-            Ideally, it will be able to provide information on various species, including their habitat, diet,
-            conservation status, and other relevant details. Any unrelated prompts will return a message to the user
-            indicating that the chatbot is specialized for species-related queries only.
+            Don't be koi, feel free to ask The Species Chatbot any questions you have about animals! It can provide information on their habitat, diet,
+            conservation status, etc. Simply type your question in the input field below and hit enter.
           </TypographyP>
           <TypographyP>
-            To use the Species Chatbot, simply type your question in the input field below and hit enter. The chatbot
-            will respond with the best available information.
+            Please keep your inquires relevant to animals.
           </TypographyP>
+
         </div>
       </div>
 
@@ -121,33 +131,41 @@ export default function SpeciesChatbot() {
           ) : null}
         </div>
 
-        <div className="mt-4 flex flex-col items-end">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onInput={handleInput}
-            rows={1}
-            placeholder="Ask about a species..."
-            disabled={isLoading}
-            className="w-full resize-none overflow-hidden rounded border border-border bg-background p-2 text-sm text-foreground focus:outline-none disabled:opacity-60"
-            onKeyDown={(e) => {
+        <div className="mt-4 w-full">
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onInput={handleInput}
+              rows={1}
+              placeholder="Ask about a species..."
+              disabled={isLoading}
               // enter to send chat request; shift+enter for newline
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                void handleSubmit();
-              }
-            }}
-          />
-          {/* cannot send another message while prev is still loading */}
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={isLoading}
-            className="mt-2 rounded bg-primary px-4 py-2 text-background transition hover:opacity-90 disabled:opacity-60"
-          >
-            {isLoading ? "Sending..." : "Enter"}
-          </button>
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleSubmit();
+                }
+              }}
+              className="w-full resize-none overflow-hidden rounded-lg border border-border bg-background
+                        py-3 pl-3 pr-12 text-sm text-foreground focus:outline-none
+                        disabled:opacity-60"
+            />
+
+            {/* cannot send another message while prev is still loading */}
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              disabled={isLoading || !message.trim()}
+              aria-label="Send message"
+              className="absolute bottom-3 right-2 flex h-8 w-8 items-center justify-center
+                        rounded-full bg-primary text-primary-foreground
+                        transition hover:opacity-90 disabled:opacity-60"
+            >
+              {isLoading ? < TypingDots /> : < Send className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
     </>
