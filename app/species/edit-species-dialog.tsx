@@ -1,5 +1,6 @@
 "use client";
 
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -114,9 +115,13 @@ export default function EditSpeciesDialog({ species }: { species: Species }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="ml-2">
-          Edit
-        </Button>
+        <button
+          type="button"
+          aria-label="Edit species"
+          className="rounded-full bg-background/90 p-2 text-foreground shadow hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
       </DialogTrigger>
 
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
