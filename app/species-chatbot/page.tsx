@@ -1,11 +1,13 @@
 /* eslint-disable */
 "use client";
 import { TypographyH2, TypographyP } from "@/components/ui/typography";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Send } from 'lucide-react';
 
-/* animation for loading message */
+type ChatMsg = { role: "user" | "bot"; content: string };
+
+/* animation for loading message - used ChatGPT for this */
 function TypingDots() {
   return (
     <div className="flex gap-0.5">
@@ -18,6 +20,8 @@ function TypingDots() {
 
 export default function SpeciesChatbot() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +33,10 @@ export default function SpeciesChatbot() {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   };
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatLog.length, isLoading]);
 
   const handleSubmit = async () => {
     const trimmed = message.trim();
@@ -87,24 +95,29 @@ export default function SpeciesChatbot() {
   };
 
   return (
-    <>
-      <TypographyH2>Species Chatbot</TypographyH2>
-      <div className="mt-4 flex gap-4">
-        <div className="mt-4 rounded-lg bg-foreground p-4 text-background">
-          <TypographyP>
+    <div className="mx-auto w-full max-w-3xl px-4 py-8">
+      <div className="mb-6">
+        <TypographyH2>Species Chatbot</TypographyH2>
+        <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
+          <TypographyP className="text-sm text-muted-foreground">
             Don't be koi, feel free to ask The Species Chatbot any questions you have about animals! It can provide information on their habitat, diet,
             conservation status, etc. Simply type your question in the input field below and hit enter.
           </TypographyP>
-          <TypographyP>
+          <TypographyP className="text-sm text-muted-foreground">
             Please keep your inquires relevant to animals.
           </TypographyP>
-
         </div>
       </div>
 
-      <div className="mx-auto mt-6">
+      {/* Header */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium">Chat</p>
+          <p className="text-xs text-muted-foreground">Enter to send · Shift+Enter for new line</p>
+        </div>
+
         {/* chat history */}
-        <div className="h-[400px] space-y-3 overflow-y-auto rounded-lg border border-border bg-muted p-4">
+        <div className="h-[440px] overflow-y-auto px-4 py-4">
           {chatLog.length === 0 ? (
             <p className="text-sm text-muted-foreground">Start chatting about a species!</p>
           ) : (
@@ -125,13 +138,15 @@ export default function SpeciesChatbot() {
           {isLoading ? (
             <div className="flex justify-start">
               <div className="max-w-[75%] rounded-2xl rounded-bl-none border border-border bg-foreground p-3 text-sm text-primary-foreground">
-                Thinking…
+                <TypingDots />
               </div>
             </div>
           ) : null}
+          <div ref={bottomRef} />
         </div>
 
-        <div className="mt-4 w-full">
+        {/* Input */}
+        <div className="border-t border-border bg-background px-4 py-3">
           <div className="relative">
             <textarea
               ref={textareaRef}
@@ -141,7 +156,6 @@ export default function SpeciesChatbot() {
               rows={1}
               placeholder="Ask about a species..."
               disabled={isLoading}
-              // enter to send chat request; shift+enter for newline
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -149,25 +163,24 @@ export default function SpeciesChatbot() {
                 }
               }}
               className="w-full resize-none overflow-hidden rounded-lg border border-border bg-background
-                        py-3 pl-3 pr-12 text-sm text-foreground focus:outline-none
-                        disabled:opacity-60"
+                         py-3 pl-3 pr-12 text-sm text-foreground focus:outline-none
+                         disabled:opacity-60"
             />
 
-            {/* cannot send another message while prev is still loading */}
             <button
               type="button"
               onClick={() => void handleSubmit()}
               disabled={isLoading || !message.trim()}
               aria-label="Send message"
               className="absolute bottom-3 right-2 flex h-8 w-8 items-center justify-center
-                        rounded-full bg-primary text-primary-foreground
-                        transition hover:opacity-90 disabled:opacity-60"
+                         rounded-full bg-primary text-primary-foreground
+                         transition hover:opacity-90 disabled:opacity-60"
             >
-              {isLoading ? < TypingDots /> : < Send className="h-4 w-4" />}
+              {isLoading ? <TypingDots /> : <Send className="h-4 w-4" />}
             </button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
