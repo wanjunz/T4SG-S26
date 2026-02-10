@@ -23,10 +23,13 @@ import {
 import type { Database } from "@/lib/schema";
 import Image from "next/image";
 import { useState } from "react";
+// Import to edit species dialog
+import EditSpeciesDialog from "./edit-species-dialog";
 
 type Species = Database["public"]["Tables"]["species"]["Row"];
 
-export default function SpeciesCard({ species }: { species: Species }) {
+// SpeciesCard tracks sessionID to see which user created it
+export default function SpeciesCard({ species, sessionId }: { species: Species; sessionId?: string }) {
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
 
@@ -91,6 +94,13 @@ export default function SpeciesCard({ species }: { species: Species }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* If current user is the author, show Edit button */}
+      {sessionId && species.author === sessionId ? (
+        <div className="mt-2">
+          <EditSpeciesDialog species={species} />
+        </div>
+      ) : null}
     </div>
   );
 }
