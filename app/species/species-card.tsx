@@ -29,9 +29,14 @@ import EditSpeciesDialog from "./edit-species-dialog";
 import DeleteSpeciesDialog from "./delete-species-dialog";
 
 type Species = Database["public"]["Tables"]["species"]["Row"];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+
+type SpeciesWithAuthor = Species & {
+  profiles?: Pick<Profile, "id" | "display_name" | "email" | "biography"> | null;
+};
 
 // SpeciesCard tracks sessionID to see which user created it
-export default function SpeciesCard({ species, sessionId }: { species: Species; sessionId?: string }) {
+export default function SpeciesCard({ species, sessionId }: { species: SpeciesWithAuthor; sessionId?: string }) {
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
 
@@ -57,7 +62,7 @@ export default function SpeciesCard({ species, sessionId }: { species: Species; 
           <DialogHeader>
             <DialogTitle>{species.scientific_name}</DialogTitle>
             <DialogDescription>
-              Detailed information about {species.scientific_name}. Click &quot;Close&quot; when you&apos;re done.
+              Detailed information about {species.scientific_name}. 
             </DialogDescription>
           </DialogHeader>
 
@@ -79,6 +84,11 @@ export default function SpeciesCard({ species, sessionId }: { species: Species; 
                   ? species.total_population.toLocaleString()
                   : "—"}
               </p>
+            </div>
+            {/* author name */}
+            <div>
+            <p className="text-sm font-medium">Author</p>
+              <p className="text-base">{species.profiles?.display_name ?? "Unknown user"}</p>
             </div>
 
             <div>
