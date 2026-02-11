@@ -25,6 +25,8 @@ import Image from "next/image";
 import { useState } from "react";
 // Import to edit species dialog
 import EditSpeciesDialog from "./edit-species-dialog";
+// Import delete species dialog
+import DeleteSpeciesDialog from "./delete-species-dialog";
 
 type Species = Database["public"]["Tables"]["species"]["Row"];
 
@@ -97,8 +99,9 @@ export default function SpeciesCard({ species, sessionId }: { species: Species; 
 
       {/* If current user is the author, show Edit button */}
       {sessionId && species.author === sessionId ? (
-        <div className="absolute right-2 top-2 z-10">
+        <div className="absolute top-2 left-2 right-2 z-10 flex items-center justify-between">
         <EditSpeciesDialog species={species} />
+        <DeleteSpeciesDialog species={species} />
         </div>
       ) : null}
     </div>
