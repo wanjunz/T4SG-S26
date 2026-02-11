@@ -58,8 +58,7 @@ function valuesFromSpecies(species: Species): Partial<FormData> {
     scientific_name: species.scientific_name ?? "",
     common_name: species.common_name ?? null,
     kingdom: (species.kingdom ?? "Animalia") as z.infer<typeof kingdoms>,
-    total_population:
-      species.total_population === null || species.total_population === undefined ? null : species.total_population,
+    total_population: species.total_population ?? null,
     image: species.image ?? null,
     description: species.description ?? null,
   };
@@ -127,7 +126,7 @@ export default function EditSpeciesDialog({ species }: { species: Species }) {
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Edit species</DialogTitle>
-          <DialogDescription>Edit fields and click "Save" when you&apos;re done.</DialogDescription>
+          <DialogDescription> Edit fields and click &quot;Save&quot; when you&apos;re done. </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
